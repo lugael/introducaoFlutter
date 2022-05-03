@@ -30,62 +30,46 @@ class NotaFiscal {
   Pessoa? cliente;
   DateTime? emissao;
   String? enderecoEntrega;
-  List<ItemNF> itens = [];
+  List<ItemNF> listItens = [];
 
   NotaFiscal({this.numero, this.cliente, this.emissao, this.enderecoEntrega});
 
   double calculoTotal() {
-    double total = 0.0;
-    for (int i = 0; i < itens.length; i++) {
-      total += itens[i].calculoValorItem();
-    }
-    return total;
+    return listItens.map((e) => e.calculoValorItem()).reduce((a, b) => a + b);
   }
 
   double totalDesconto() {
-    double descTotal = 0.0;
-    for (ItemNF item in itens) {
-      descTotal += item.desconto;
-    }
-    return descTotal;
+    return listItens.map((e)=> e.desconto).reduce((a, b) => a + b);
   }
 
-  ItemNF? getProdutoMaisBarato() {
-    ItemNF? itemMaisBarato;
-    for (ItemNF item in itens) {
-      if (itemMaisBarato == null) {
-        itemMaisBarato = item;
-      } else if (item.calculoValorItem() < itemMaisBarato.calculoValorItem()) {
-        itemMaisBarato = item;
-      }
-    }
-    return itemMaisBarato;
+  ItemNF getProdutoMaisBarato() {
+    return listItens.map((e) => e).reduce((a, b) => a.calculoValorItem() < b.calculoValorItem() ? a : b);
   }
 
   ItemNF? getProdutoMaisCaro() {
-    ItemNF? itemMaisCaro;
-    for (ItemNF item in itens) {
-      if (itemMaisCaro == null) {
-        itemMaisCaro = item;
-      } else if (item.calculoValorItem() > itemMaisCaro.calculoValorItem()) {
-        itemMaisCaro = item;
-      }
-    }
-    return itemMaisCaro;
+    return listItens.map((e) => e).reduce((a, b) => a.calculoValorItem() > b.calculoValorItem() ? a : b);
   }
-
+  bool possuiDesconto(){
+    return listItens.map((e) => e).any((c) => c.desconto > 0 );
+  }
+  Iterable<ItemNF> itensComDesconto(){
+    return listItens.map((e) => e).where((c) => c.desconto > 0);
+  }
+  String getStrItens(){
+    return listItens.map((e) => "${e.numSeq} : ${e.produto}").join(",");
+  }
   ItemNF addItem(
       {required String produto,
       required double valor,
       double desconto = 0.0,
       double acrescimo = 0.0}) {
     ItemNF item = ItemNF(
-        numSeq: itens.length + 1,
+        numSeq: listItens.length + 1,
         produto: produto,
         valor: valor,
         desconto: desconto,
         acrescimo: acrescimo);
-    itens.add(item);
+    listItens.add(item);
     return item;
   }
 }
@@ -124,6 +108,10 @@ void mainNotaFiscal() {
   nota.addItem(produto: 'Maçã', valor: 10, desconto: 2);
   nota.addItem(produto: 'Banana', valor: 3, acrescimo: 0.5);
   nota.addItem(produto: 'Vodka', valor: 100, desconto: 10);
-  print(
-      'Valor total da NF=${nota.calculoTotal()}\n Valor total de descontos = ${nota.totalDesconto()}\n O produto mais barato = ${nota.getProdutoMaisBarato()}\n O produto mais caro= ${nota.getProdutoMaisCaro()}');
+  print(nota.getProdutoMaisCaro());
+  print(nota.getProdutoMaisBarato());
+  print(nota.totalDesconto());
+  print(nota.itensComDesconto());
+  print(nota.possuiDesconto());
+  // print('Valor total da NF=${nota.calculoTotal()}\n Valor total de descontos = ${nota.totalDesconto()}\n O produto mais barato = ${nota.getProdutoMaisBarato()}\n O produto mais caro= ${nota.getProdutoMaisCaro()}');
 }
